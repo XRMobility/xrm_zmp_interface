@@ -141,4 +141,5 @@ static inline double KmhToMs(double v)
     return (v * 1000.0 / (60.0 * 60.0));
 }
 
+#define _STEERING_ANGLE_ERROR 0 //deg
 #endif // vehicle_info_hpp

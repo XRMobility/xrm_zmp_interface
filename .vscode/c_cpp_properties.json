@@ -331,7 +331,11 @@
                 "${workspaceFolder}/include",
                 "/home/mashanpeng/autoware/build/autoware_auto_control_msgs/rosidl_generator_cpp",
                 "/opt/ros/humble/include/rclcpp",
-                "/home/mashanpeng/autoware/build/autoware_auto_vehicle_msgs/rosidl_generator_cpp"
+                "/home/mashanpeng/autoware/build/autoware_auto_vehicle_msgs/rosidl_generator_cpp",
+                "/opt/ros/humble/include/message_filters",
+                "/opt/ros/humble/include/std_msgs",
+                "/home/mashanpeng/autoware/build/tier4_control_msgs/rosidl_generator_cpp",
+                "${workspaceFolder}/include/zmp"
             ],
             "name": "ROS",
             "intelliSenseMode": "gcc-x64",

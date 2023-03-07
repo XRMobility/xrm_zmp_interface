@@ -1,6 +1,8 @@
 #ifndef vehicle_info_hpp
 #define vehicle_info_hpp
 
+#define ZMP_LOOP_RATE 50                                         // Hz
+
 // prius parameters
 #define WHEEL_BASE 2.7                                           // tire-to-tire size of Prius.//车轮轴距的大小
 #define WHEEL_ANGLE_MAX 31.28067                                 // max angle of front tires. //前轮转向角度的最大值

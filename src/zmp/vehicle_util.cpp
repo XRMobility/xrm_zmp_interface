@@ -469,7 +469,6 @@ void VehicleUtil::SetManualMode()
   usleep(200000);
   SetDrvMode(CMD_MODE_MANUAL);
   SetStrMode(CMD_MODE_MANUAL);
-  
 }
 void VehicleUtil::SetProgramMode()
 {

@@ -69,6 +69,12 @@ public:
   std::thread read_thread;
 
   // Setter
+  void SetBlinkerLeftON();
+  void SetBlinkerRightON();
+  void SetBlinkerLeftOFF();
+  void SetBlinkerRightOFF();
+  void SetManualMode();
+  void SetProgramMode();
 
   // Getter
   float getVelocity();
@@ -76,10 +82,7 @@ public:
   int getGear();
   bool getBlinkerLeft();
   bool getBlinkerRight();
-  void SetBlinkerLeftON();
-  void SetBlinkerRightON();
-  void SetBlinkerLeftOFF();
-  void SetBlinkerRightOFF();
+  
   float getCurrentBrake();
   float getCurrentAccel();
   bool getDoorStatus();

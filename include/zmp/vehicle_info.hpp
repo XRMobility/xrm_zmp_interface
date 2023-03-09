@@ -204,4 +204,8 @@ static inline double KmhToMs(double v)
 #define _K_STEERING_I_SLOW 0.8
 #define _K_STEERING_D_SLOW 1.5
 
+#define VGR_COEF_A 15.713
+#define VGR_COEF_B 0.053
+#define VGR_COEF_C 0.042
+
 #endif // vehicle_info_hpp

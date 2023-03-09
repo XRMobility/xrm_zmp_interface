@@ -223,7 +223,7 @@ public:
    // Set log
 //    void SetlogEnable(selectLogInf select);
 
-private:
+
     void UpdateSteerState(REP_STEER_INFO_INDEX index);
     void UpdateDriveState(REP_DRIVE_INFO_INDEX index);
     void UpdateBattState(REP_BATT_INFO_INDEX index);

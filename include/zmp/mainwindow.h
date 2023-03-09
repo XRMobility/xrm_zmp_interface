@@ -1,23 +1,6 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QtGui/QMainWindow>
-#include <QtGui/QGraphicsView>
-#include <QtGui/QPixmap>
-#include <QtGui/QGraphicsPixmapItem>
-#include <QtGui/QFileDialog>
-#include <QTimer>
-#include <QTime>
-
-//#include "OtToolBar.h"
-
-//#include <opencv/cv.h>
-//#include <opencv/cvaux.h>
-//#include <opencv/cxcore.h>
-//#include <opencv/highgui.h>
-
-#include "GameControl.h"
 #include "HevCnt.h"
 #include <time.h>
 #include <sys/time.h>
@@ -25,21 +8,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 
-namespace Ui {
-class MainWindow;
-}
-
-/*struct selectLogInf {
-    bool start;
-    bool drvInf;
-    bool strInf;
-    bool brkInf;
-    bool battInf;
-    bool otherInf;
-    bool cameraInf;
-};*/
-
-class MainWindow : public QMainWindow, GameReceiveHandler, ChangeConfig
+Window : public QMainWindow, GameReceiveHandler, ChangeConfig
 {
     Q_OBJECT
     

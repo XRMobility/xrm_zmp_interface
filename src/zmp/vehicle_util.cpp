@@ -1,4 +1,14 @@
-#include <zmp/vehicle_util.hpp>
+#include <vehicle_util.hpp>
+
+VehicleUtil::VehicleUtil()
+{
+  hev = new HevCnt();
+  hev->Init();
+  hev->Start();
+
+  read_thread = std::thread(&VehicleUtil::readLoop, this);
+  read_thread.detach();
+}
 
 void VehicleUtil::clear_diff_str()
 {
@@ -87,13 +97,9 @@ void VehicleUtil::ZMP_SET_STR_MANUAL()
   }
 }
 
-void VehicleUtil::ZMP_SET_STR_ANGLE(double angle){
-    hev->SetStrAngle(angle);
-}
+void VehicleUtil::ZMP_SET_STR_ANGLE(double angle) { hev->SetStrAngle(angle); }
 
-void VehicleUtil::ZMP_SET_STR_TORQUE(double torque){
-    hev->SetStrTorque(torque);
-}
+void VehicleUtil::ZMP_SET_STR_TORQUE(double torque) { hev->SetStrTorque(torque); }
 
 void VehicleUtil::SetStrMode(int mode)
 {
@@ -113,36 +119,362 @@ void VehicleUtil::SetStrMode(int mode)
   }
 }
 
-double VehicleUtil::_str_torque_pid_control(double current_steering_angle, double cmd_steering_angle)
+double VehicleUtil::_str_torque_pid_control(
+  double current_steering_angle, double cmd_steering_angle)
 {
   double e;
   static double e_prev = 0xffffffff;
   double e_i;
-    double e_d;
-    double ret;
+  double e_d;
+  double ret;
 
-    current_steering_angle-= _STEERING_ANGLE_ERROR;
-    double steering_diff = cmd_steering_angle - current_steering_angle;
-    steering_diff_sum += steering_diff;
-    if(steering_diff_sum>_STEERING)
+  current_steering_angle -= _STEERING_ANGLE_ERROR;
+  double steering_diff = cmd_steering_angle - current_steering_angle;
+  steering_diff_sum += steering_diff;
+  if (steering_diff_sum > _STEERING_MAX_SUM) {
+    steering_diff_sum = _STEERING_MAX_SUM;
+  }
+
+  if (steering_diff_sum < -_STEERING_MAX_SUM) {
+    steering_diff_sum = -_STEERING_MAX_SUM;
+  }
+
+  e = steering_diff;
+  e_i = steering_diff_sum;
+
+  if (e_prev == 0xffffffff) {
+    e_prev = e;
+  }
+
+  e_d = (e - e_prev) / (STEERING_INTERNAL_PERIOD / 1000.0);
+
+  double k_p = _K_STEERING_P;
+  double k_i = _K_STEERING_I;
+  double k_d = _K_STEERING_D;
+
+  double steering_max_torque = _STEERING_MAX_TORQUE;
+  static double targert_steering_torque = 0;
+
+  if (fabs(e) < 0.3 && fabs(cmd_steering_angle < 3 && vstate.velocity < 10)) {
+    steering_diff_sum = 0;
+    if (e > 0) {
+      targert_steering_torque = 10;
+    } else {
+      targert_steering_torque = -10;
+    }
+  } else {
+    targert_steering_torque = e * k_p + e_i * k_i + e_d * k_d;
+  }
+
+  if (targert_steering_torque > steering_max_torque) {
+    targert_steering_torque = steering_max_torque;
+  } else if (targert_steering_torque < -steering_max_torque) {
+    targert_steering_torque = -steering_max_torque;
+  }
+  ret = targert_steering_torque;
+  e_prev = e;
+  return ret;
 }
 
 void VehicleUtil::SteeringControl(double current_steering_angle, double cmd_steering_angle)
-  {
-    double torque;
-    if (!ZMP_STR_CONTROLED()) {
-      clear_diff_str();
-    }
-    cmd_steering_angle -= _STEERING_ANGLE_ERROR;
-    ZMP_SET_STR_ANGLE(cmd_steering_angle*10);
-
-    if (vstate.velocity<3)
-    {
-      torque = 0;
-    }
-    else
-    {
-      torque = _str
-    }
-    
+{
+  double torque;
+  if (!ZMP_STR_CONTROLED()) {
+    clear_diff_str();
   }
+  cmd_steering_angle -= _STEERING_ANGLE_ERROR;
+  ZMP_SET_STR_ANGLE(cmd_steering_angle * 10);
+
+  if (vstate.velocity < 3) {
+    torque = 0;
+  } else {
+    torque = _str_torque_pid_control(current_steering_angle, cmd_steering_angle);
+  }
+  ZMP_SET_STR_ANGLE(torque);
+}
+
+void VehicleUtil::clear_diff_drv()
+{
+  int i;
+  accel_diff_sum = 0;
+  brake_diff_sum = 0;
+  for (i = 0; i < (int)accel_diff_buffer.size(); i++) {
+    accel_diff_buffer.pop();
+  }
+  for (i = 0; i < (int)brake_diff_buffer.size(); i++) {
+    brake_diff_buffer.pop();
+  }
+}
+
+void VehicleUtil::SetDrvMode(int mode)
+{
+  switch (mode) {
+    case CMD_MODE_MANUAL:
+      std::cout << "Manual mode(Driving)" << std::endl;
+      ZMP_SET_DRV_MANUAL();
+      break;
+    case CMD_MODE_PROGRAM:
+      std::cout << "Program mode(Driving)" << std::endl;
+      ZMP_SET_DRV_PROGRAM();
+      clear_diff_drv();
+      break;
+    default:
+      std::cout << "Invalid mode(Driving)" << std::endl;
+      break;
+  }
+}
+
+void VehicleUtil::ZMP_SET_SHIFT_POS_D() { hev->SetDrvShiftMode(SHIFT_POS_D); }
+void VehicleUtil::ZMP_SET_SHIFT_POS_N() { hev->SetDrvShiftMode(SHIFT_POS_N); }
+void VehicleUtil::ZMP_SET_SHIFT_POS_R() { hev->SetDrvShiftMode(SHIFT_POS_R); }
+void VehicleUtil::ZMP_SET_SHIFT_POS_B() { hev->SetDrvShiftMode(SHIFT_POS_B); }
+
+void VehicleUtil::SetGear(int gear)
+{
+  double current_velocity = vstate.velocity;  // km/h
+  if (current_velocity != 0) {
+    std::cout << "Vehicle is moving. Can't change gear" << std::endl;
+    return;
+  }
+  ZMP_STOP();
+  switch (gear) {
+    case CMD_GEAR_D:
+      std::cout << "Set Gear D" << std::endl;
+      ZMP_SET_SHIFT_POS_D();
+      break;
+    case CMD_GEAR_N:
+      std::cout << "Set Gear N" << std::endl;
+      ZMP_SET_SHIFT_POS_N();
+      break;
+    case CMD_GEAR_R:
+      std::cout << "Set Gear R" << std::endl;
+      ZMP_SET_SHIFT_POS_R();
+      break;
+    case CMD_GEAR_B:
+      std::cout << "Set Gear B" << std::endl;
+      ZMP_SET_SHIFT_POS_B();
+      break;
+    default:
+      std::cout << "Invalid gear" << std::endl;
+      break;
+  }
+  sleep(1);
+}
+
+double VehicleUtil::_accel_stroke_pid_control(double current_velocity, double cmd_velocity)
+{
+  double e;
+  static double e_prev = 0;
+  double e_i;
+  double e_d;
+  double ret;
+
+  if (vstate.brake_stroke > _BRAKE_PEDAL_OFFSET) {
+    ret = 0;
+    e_prev = 0;
+  } else {
+    double target_accel_stroke;
+    e = cmd_velocity - current_velocity;
+    e_d = e - e_prev;
+    accel_diff_sum += e;
+    if (accel_diff_sum > _ACCEL_MAX_I) {
+      e_i = _ACCEL_MAX_I;
+    } else {
+      e_i = accel_diff_sum;
+    }
+    if (current_velocity > 15) {
+      target_accel_stroke =
+        _K_ACCEL_P_UNTIL20 * e + _K_ACCEL_I_UNTIL20 * e_i + _K_ACCEL_D_UNTIL20 * e_d;
+    } else {
+      target_accel_stroke =
+        _K_ACCEL_P_UNTIL10 * e + _K_ACCEL_I_UNTIL10 * e_i + _K_ACCEL_D_UNTIL10 * e_d;
+    }
+    if (target_accel_stroke > _ACCEL_PEDAL_MAX) {
+      target_accel_stroke = _ACCEL_PEDAL_MAX;
+    } else if (target_accel_stroke < 0) {
+      target_accel_stroke = 0;
+    }
+    ret = target_accel_stroke;
+    e_prev = e;
+  }
+  return ret;
+}
+
+double VehicleUtil::_brake_stroke_pid_control(double current_velocity, double cmd_velocity)
+{
+  double e;
+  static double e_prev = 0;
+  double e_i;
+  double e_d;
+  double ret;
+
+  if (vstate.accel_stroke > _ACCEL_PEDAL_OFFSET) {
+    ret = 0;
+    e_prev = 0;
+  } else {
+    double target_brake_stroke;
+    e = -1 * (cmd_velocity - current_velocity);
+    if (e > 0 && e <= 1) {
+      e = 0;
+    }
+    e_d = e - e_prev;
+    brake_diff_sum += e;
+    if (brake_diff_sum > _BRAKE_MAX_I) {
+      e_i = _BRAKE_MAX_I;
+    } else {
+      e_i = brake_diff_sum;
+    }
+    target_brake_stroke = _K_BRAKE_P * e + _K_BRAKE_I * e_i + _K_BRAKE_D * e_d;
+    if (target_brake_stroke > _BRAKE_PEDAL_MAX) {
+      target_brake_stroke = _BRAKE_PEDAL_MAX;
+    } else if (target_brake_stroke < 0) {
+      target_brake_stroke = 0;
+    }
+    ret = target_brake_stroke;
+    e_prev = e;
+  }
+  return ret;
+}
+
+long long int VehicleUtil::getTime()
+{
+  struct timeval current_time;
+  struct timezone ttz;
+  double t;
+  gettimeofday(&current_time, &ttz);
+  t = (current_time.tv_sec * 1000.0) + (current_time.tv_usec) / 1000.0;
+  return static_cast<long long int>(t);
+}
+
+void VehicleUtil::readLoop()
+{
+  while (true) {
+    hev->GetBattInf(&_battInf);
+    hev->GetDrvInf(&_drvInf);
+    hev->GetBrakeInf(&_brakeInf);
+    hev->GetOtherInf(&_otherInf);
+    hev->GetStrInf(&_strInf);
+    hev->UpdateBattState(REP_BATT_INFO);
+    hev->UpdateBattState(REP_BATT_INFO_CURRENT);
+    hev->UpdateBattState(REP_BATT_INFO_VOLT);
+    hev->UpdateDriveState(REP_DRV_MODE);
+    hev->UpdateDriveState(REP_GAS_PEDAL);
+    hev->UpdateDriveState(REP_GAS_PEDAL_FROMOBD);
+    hev->UpdateDriveState(REP_VELOCITY);
+    hev->UpdateDriveState(REP_VELOCITY_FROMOBD);
+    hev->UpdateDriveState(REP_VELOCITY_FROMOBD2);
+    hev->UpdateDriveState(REP_WHEEL_VELOCITY_F);
+    hev->UpdateDriveState(REP_WHEEL_VELOCITY_R);
+    hev->UpdateDriveState(REP_BRAKE_PEDAL);
+    hev->UpdateDriveState(REP_BRAKE_PEDAL_FROMOBD);
+    hev->UpdateDriveState(REP_SHIFT_POS);
+    hev->UpdateDriveState(REP_SHIFT_POS_FROMOBD);
+    hev->UpdateDriveState(REP_HEV_MODE);
+    hev->UpdateDriveState(REP_ICE_RPM);
+    hev->UpdateDriveState(REP_ICE_COOLANT_TEMP);
+    hev->UpdateDriveState(REP_ACCELERLATION);
+    hev->UpdateDriveState(REP_SIDE_ACCELERLATION);
+    hev->UpdateDriveState(REP_DRIVE_MODE);
+    hev->UpdateDriveState(REP_CRUISE_STATE);
+    hev->UpdateDriveState(REP_DTC_STATUS);
+    hev->UpdateDriveState(REP_BRAKE_STATUS);
+    hev->UpdateOtherState(REP_LIGHT_STATE);
+    hev->UpdateOtherState(REP_DOOR_STATE);
+    hev->UpdateOtherState(REP_GAS_LEVEL);
+    vstate.accel_stroke = _drvInf.actualPedalStr;
+    vstate.brake_stroke = _brakeInf.actualPedalStr;
+    vstate.velocity = _drvInf.veloc;
+    vstate.tstamp = (long long int)(getTime());
+    vstate.steering_angle = _strInf.angle;
+    vstate.steering_torque = _strInf.torque;
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+  }
+}
+
+float VehicleUtil::getVelocity() { return vstate.velocity; }
+
+double VehicleUtil::KmhToMs(double kmh) { return (kmh * 1000 / (60.0 * 60.0)); }
+
+double VehicleUtil::Kmh100ToMs(double kmh100) { return (kmh100 * 10 / (60.0 * 60.0)); }
+
+double VehicleUtil::RadToDeg(double rad) { return (rad * 180.0 / M_PI); }
+double VehicleUtil::DegToRad(double deg) { return (deg * M_PI / 180.0); }
+
+double VehicleUtil::getSteeringAngle() { return vstate.steering_angle; }
+
+double VehicleUtil::calculateVariableGearRatio(const double vel, const double steer_wheel)
+{
+  return std::max(1e-5, VGR_COEF_A + VGR_COEF_B * vel * vel - VGR_COEF_C * std::fabs(steer_wheel));
+}
+
+int VehicleUtil::getGear()
+{
+  if (_drvInf.actualShift == SHIFT_POS_D) {
+    return 1;
+  } else if (_drvInf.actualShift == SHIFT_POS_N) {
+    return 2;
+  } else if (_drvInf.actualShift == SHIFT_POS_R) {
+    return 3;
+  } else if (_drvInf.actualShift == SHIFT_POS_B) {
+    return 4;
+  } else {
+    return 0;
+  }
+}
+
+bool VehicleUtil::getBlinkerLeft()
+{
+  if (_brakeInf.blinkerLeft == 1) {
+    return true;
+  } else {
+    return false;
+  }
+}
+bool VehicleUtil::getBlinkerRight()
+{
+  if (_brakeInf.blinkerRight == 1) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+float VehicleUtil::getCurrentAccel()
+{
+  return (float)_drvInf.actualPedalStr / (float)_ACCEL_PEDAL_MAX;
+}
+float VehicleUtil::getCurrentBrake()
+{
+  return (float)_brakeInf.actualPedalStr / (float)_BRAKE_PEDAL_MAX;
+}
+
+bool VehicleUtil::getDoorStatus()
+{
+  if (_otherInf.door == DOOR_CLOSE) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+void VehicleUtil::SetBlinkerLeftON() { hev->SetBlinkerLeft(1); }
+void VehicleUtil::SetBlinkerRightON() { hev->SetBlinkerRight(1); }
+
+void VehicleUtil::SetBlinkerLeftOFF() { hev->SetBlinkerLeft(0); }
+void VehicleUtil::SetBlinkerRightOFF() { hev->SetBlinkerRight(0); }
+
+void VehicleUtil::SetManualMode()
+{
+  hev->SetBrakeMode(0x00);
+  usleep(200000);
+  SetDrvMode(CMD_MODE_MANUAL);
+  SetStrMode(CMD_MODE_MANUAL);
+  
+}
+void VehicleUtil::SetProgramMode()
+{
+  SetDrvMode(CMD_MODE_PROGRAM);
+  SetStrMode(CMD_MODE_PROGRAM);
+  hev->SetBrakeMode(0x10);
+  usleep(200000);
+}

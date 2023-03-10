@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+  <node pkg="xrm_zmp_interface" exec="xrm_zmp_interface" name="xrm_zmp_interface" output="screen"></node>
+</launch>

@@ -1,3 +1,5 @@
+#ifndef HEVCNT_H
+#define HEVCNT_H
 #include "zmp/HevControl.h"
 #include <time.h>
 #include <sys/time.h>
@@ -281,3 +283,4 @@ public:
     int _asistTrq;
 };
 
+#endif // HEVCNT_H

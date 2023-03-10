@@ -1,5 +1,14 @@
 #include <zmp/vehicle_util.hpp>
 
+double VehicleUtil::steering_diff_sum=0.0;
+double VehicleUtil::estimate_accel=0.0;
+int VehicleUtil::target_accel_level=0;
+double VehicleUtil::accel_diff_sum=0.0;
+double VehicleUtil::brake_diff_sum=0.0;
+std::queue<double> VehicleUtil::steering_diff_buffer;
+std::queue<double> VehicleUtil::accel_diff_buffer;
+std::queue<double> VehicleUtil::brake_diff_buffer;
+
 VehicleUtil::VehicleUtil()
 {
   hev = new HevCnt();
@@ -508,7 +517,7 @@ void VehicleUtil::StrokeControl(double current_velocity, double cmd_velocity)
   static uint vel_buffer_size = 10;
   double old_velocity = 0.0;
 
-  if (!ZMP_DRV_CONTROLED) {
+  if (ZMP_DRV_CONTROLED()==0) {
     clear_diff_drv();
 #ifdef USE_BRAKE_LAMP
     sndBrkLampOff();

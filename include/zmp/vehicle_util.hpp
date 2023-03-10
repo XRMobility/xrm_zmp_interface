@@ -10,15 +10,6 @@
 #include <string>
 #include <thread>
 
-static double steering_diff_sum = 0;
-static double estimate_accel = 0.0;
-static int target_accel_level = 0;
-static double accel_diff_sum = 0;
-static double brake_diff_sum = 0;
-std::queue<double> steering_diff_buffer;
-std::queue<double> accel_diff_buffer;
-std::queue<double> brake_diff_buffer;
-
 class VehicleUtil
 {
 public:
@@ -32,12 +23,21 @@ public:
   StrInf _strInf;
   vehicle_state_t vstate;
   double cycle_time;
-  int cmd_rx_interval=100;//ms
+  int cmd_rx_interval = 100;  // ms
 
-  int current_mode=-1;
-  int current_gear=-1;
-  int mode_is_setting=false;
-  int gear_is_setting=false;
+  static double steering_diff_sum;
+  static double estimate_accel;
+  static int target_accel_level;
+  static double accel_diff_sum;
+  static double brake_diff_sum;
+  static std::queue<double> steering_diff_buffer;
+  static std::queue<double> accel_diff_buffer;
+  static std::queue<double> brake_diff_buffer;
+
+  int current_mode = -1;
+  int current_gear = -1;
+  int mode_is_setting = false;
+  int gear_is_setting = false;
 
   void ZMP_STOP();
   void readLoop();
@@ -95,7 +95,7 @@ public:
   int getGear();
   bool getBlinkerLeft();
   bool getBlinkerRight();
-  
+
   float getCurrentBrake();
   float getCurrentAccel();
   bool getDoorStatus();

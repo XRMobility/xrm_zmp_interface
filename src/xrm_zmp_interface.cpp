@@ -137,10 +137,10 @@ void XrmZmpNode::callbackGateMode(const tier4_control_msgs::msg::GateMode::Const
   vehicle_util_->ClearCntDiag();
   sleep(1);
   if (
-    (msg->data == tier4_control_msgs::msg::GateMode::AUTO && vehicle_util_->ZMP_DRV_CONTROLED() &&
-     vehicle_util_->ZMP_STR_CONTROLED()) ||
+    (msg->data == tier4_control_msgs::msg::GateMode::AUTO && vehicle_util_->ZMP_DRV_CONTROLED()==1 &&
+     vehicle_util_->ZMP_STR_CONTROLED()==1) ||
     (msg->data == tier4_control_msgs::msg::GateMode::EXTERNAL &&
-     !vehicle_util_->ZMP_DRV_CONTROLED() && !vehicle_util_->ZMP_STR_CONTROLED())) {
+     vehicle_util_->ZMP_DRV_CONTROLED()==0 && vehicle_util_->ZMP_STR_CONTROLED()==0)) {
     return;
   } else if (msg->data == tier4_control_msgs::msg::GateMode::EXTERNAL) {
     vehicle_util_->SetManualMode();
@@ -162,14 +162,14 @@ void XrmZmpNode::publishCommands()
   // Publish control mode
   autoware_auto_vehicle_msgs::msg::ControlModeReport control_mode_msg;
   control_mode_msg.stamp = current_time;
-  if (vehicle_util_->ZMP_DRV_CONTROLED() && vehicle_util_->ZMP_STR_CONTROLED()) {
+  if (vehicle_util_->ZMP_DRV_CONTROLED()==1 && vehicle_util_->ZMP_STR_CONTROLED()==1) {
     control_mode_msg.mode = autoware_auto_vehicle_msgs::msg::ControlModeReport::AUTONOMOUS;
-  } else if (!vehicle_util_->ZMP_DRV_CONTROLED() && !vehicle_util_->ZMP_STR_CONTROLED()) {
+  } else if (vehicle_util_->ZMP_DRV_CONTROLED()==0 && vehicle_util_->ZMP_STR_CONTROLED()==0) {
     control_mode_msg.mode = autoware_auto_vehicle_msgs::msg::ControlModeReport::MANUAL;
-  } else if (!vehicle_util_->ZMP_DRV_CONTROLED() && vehicle_util_->ZMP_STR_CONTROLED()) {
+  } else if (vehicle_util_->ZMP_DRV_CONTROLED()==0 && vehicle_util_->ZMP_STR_CONTROLED()==1) {
     control_mode_msg.mode =
       autoware_auto_vehicle_msgs::msg::ControlModeReport::AUTONOMOUS_STEER_ONLY;
-  } else if (vehicle_util_->ZMP_DRV_CONTROLED() && !vehicle_util_->ZMP_STR_CONTROLED()) {
+  } else if (vehicle_util_->ZMP_DRV_CONTROLED()==1 && vehicle_util_->ZMP_STR_CONTROLED()==0) {
     control_mode_msg.mode =
       autoware_auto_vehicle_msgs::msg::ControlModeReport::AUTONOMOUS_VELOCITY_ONLY;
   }

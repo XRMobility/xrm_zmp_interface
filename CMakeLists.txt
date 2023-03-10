@@ -3,6 +3,8 @@ project(xrm_zmp_interface)
 
 find_package(ament_cmake_auto REQUIRED)
 
+ament_auto_find_build_dependencies()
+
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 14)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -13,22 +15,27 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
+add_library(vehicle_util
+  src/zmp/vehicle_util.cpp
+  src/zmp/HevCnt.cpp
+)
+
 ament_auto_add_executable(xrm_zmp_interface
   src/xrm_zmp_interface.cpp
   src/xrm_zmp_interface_node.cpp
-  src/zmp/HevCnt.cpp
-  src/zmp/vehicle_util.cpp
 )
+
+
 
 target_link_libraries(
   xrm_zmp_interface
+  vehicle_util
   ${PROJECT_SOURCE_DIR}/lib/libCANUSB.so
   ${PROJECT_SOURCE_DIR}/lib/libhevcontrol.so
 )
 
 include_directories(
   include
-  ${PROJECT_SOURCE_DIR}/include
 )
 
 target_include_directories(xrm_zmp_interface PUBLIC

@@ -1,7 +1,7 @@
 #ifndef CANUSB_H_
 #define CANUSB_H_
 
-#include "CANUSBConst.h"
+#include "zmp/CANUSBConst.h"
 #include <pthread.h>
 #include <termios.h>
 #include <poll.h>

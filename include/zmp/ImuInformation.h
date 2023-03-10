@@ -10,7 +10,7 @@
 #ifndef IMUINFORMATION_H_
 #define IMUINFORMATION_H_
 
-#include "CANConst.h"
+#include "zmp/CANConst.h"
 
 namespace zmp
 {

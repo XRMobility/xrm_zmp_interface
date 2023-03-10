@@ -1,4 +1,4 @@
-#include <vehicle_util.hpp>
+#include <zmp/vehicle_util.hpp>
 
 VehicleUtil::VehicleUtil()
 {
@@ -336,6 +336,23 @@ double VehicleUtil::_brake_stroke_pid_control(double current_velocity, double cm
   return ret;
 }
 
+double VehicleUtil::_stopping_control(double current_velocity)
+{
+  double ret;
+  static double old_brake_stroke = _BRAKE_PEDAL_STOPPING_MED;
+  if (current_velocity < 0.1) {
+    int gain = (int)(((double)_BRAKE_PEDAL_STOPPING_MAX) * cycle_time);
+    ret = old_brake_stroke + gain;
+    if ((int)ret > _BRAKE_PEDAL_STOPPING_MAX) {
+      ret = _BRAKE_PEDAL_STOPPING_MAX;
+    }
+  } else {
+    ret = _BRAKE_PEDAL_STOPPING_MED;
+    old_brake_stroke = _BRAKE_PEDAL_STOPPING_MED;
+  }
+  return ret;
+}
+
 long long int VehicleUtil::getTime()
 {
   struct timeval current_time;
@@ -346,10 +363,8 @@ long long int VehicleUtil::getTime()
   return static_cast<long long int>(t);
 }
 
-void VehicleUtil::readLoop()
-{
-  while (true) {
-    hev->GetBattInf(&_battInf);
+void VehicleUtil::UpdateInfo(){
+  hev->GetBattInf(&_battInf);
     hev->GetDrvInf(&_drvInf);
     hev->GetBrakeInf(&_brakeInf);
     hev->GetOtherInf(&_otherInf);
@@ -387,6 +402,12 @@ void VehicleUtil::readLoop()
     vstate.tstamp = (long long int)(getTime());
     vstate.steering_angle = _strInf.angle;
     vstate.steering_torque = _strInf.torque;
+}
+
+void VehicleUtil::readLoop()
+{
+  while (true) {
+    UpdateInfo();
     std::this_thread::sleep_for(std::chrono::milliseconds(20));
   }
 }
@@ -476,4 +497,91 @@ void VehicleUtil::SetProgramMode()
   SetStrMode(CMD_MODE_PROGRAM);
   hev->SetBrakeMode(0x10);
   usleep(200000);
+}
+
+void VehicleUtil::sndBrkLampOn() { hev->SetBrakeLamp(1); }
+void VehicleUtil::sndBrkLampOff() { hev->SetBrakeLamp(0); }
+
+void VehicleUtil::StrokeControl(double current_velocity, double cmd_velocity)
+{
+  static queue<double> vel_buffer;
+  static uint vel_buffer_size = 10;
+  double old_velocity = 0.0;
+
+  if (!ZMP_DRV_CONTROLED) {
+    clear_diff_drv();
+#ifdef USE_BRAKE_LAMP
+    sndBrkLampOff();
+#endif
+    return;
+  }
+
+  vel_buffer.push(current_velocity);
+  if (vel_buffer.size() > vel_buffer_size) {
+    old_velocity = vel_buffer.front();
+    vel_buffer.pop();
+    estimate_accel = (current_velocity - old_velocity) / (cycle_time * vel_buffer_size);
+    std::cout << "estimate_accel:" << estimate_accel << std::endl;
+    if (
+      fabs(cmd_velocity) > current_velocity && fabs(cmd_velocity) > 0.0 &&
+      current_velocity < SPEED_LIMIT) {
+      double accel_stroke;
+      std::cout << "accelerate: current_velocity:" << current_velocity
+                << " cmd_velocity:" << cmd_velocity << std::endl;
+      accel_stroke = _accel_stroke_pid_control(current_velocity, cmd_velocity);
+      if (accel_stroke > 0.0) {
+        std::cout << "ZMP_SET_DRV_STROKE(" << accel_stroke << ")" << std::endl;
+        hev->SetDrvStroke(accel_stroke);
+        ZMP_SET_BRAKE_STROKE(0);
+      } else {
+        std::cout << "ZMP_SET_DRV_STROKE(0)" << std::endl;
+        hev->SetDrvStroke(0);
+        std::cout << "ZMP_SET_BRAKE_STROKE(" << -accel_stroke << ")" << std::endl;
+        ZMP_SET_BRAKE_STROKE(-accel_stroke);
+      }
+    } else if (fabs(cmd_velocity) < current_velocity && fabs(cmd_velocity) > 0.0) {
+      double brake_stroke;
+      std::cout << "decelerate: current_velocity:" << current_velocity
+                << " cmd_velocity:" << cmd_velocity << std::endl;
+      brake_stroke = _brake_stroke_pid_control(current_velocity, cmd_velocity);
+      if (brake_stroke > 0) {
+        std::cout << "ZMP_SET_DRV_STROKE(" << brake_stroke << ")" << std::endl;
+        ZMP_SET_BRAKE_STROKE(brake_stroke);
+        hev->SetDrvStroke(0);
+      } else {
+        std::cout << "ZMP_SET_DRV_STROKE(0)" << std::endl;
+        ZMP_SET_BRAKE_STROKE(0);
+        std::cout << "ZMP_SET_BRAKE_STROKE(" << -brake_stroke << ")" << std::endl;
+        hev->SetDrvStroke(-brake_stroke);
+      }
+    } else if (cmd_velocity == 0.0 && current_velocity != 0.0) {
+      double brake_stroke;
+      std::cout << "stop: current_velocity:" << current_velocity << " cmd_velocity:" << cmd_velocity
+                << std::endl;
+      brake_stroke = _brake_stroke_pid_control(current_velocity, cmd_velocity);
+      if (current_velocity < 4.0) {
+        ZMP_SET_BRAKE_STROKE(0);
+        brake_stroke = _stopping_control(current_velocity);
+        std::cout << "ZMP_SET_DRV_STROKE(" << brake_stroke << ")" << std::endl;
+        ZMP_SET_BRAKE_STROKE(brake_stroke);
+      } else {
+        brake_stroke = _brake_stroke_pid_control(current_velocity, 0);
+        if (brake_stroke > 0) {
+          std::cout << "ZMP_SET_DRV_STROKE(" << brake_stroke << ")" << std::endl;
+          ZMP_SET_BRAKE_STROKE(brake_stroke);
+        } else {
+          std::cout << "ZMP_SET_DRV_STROKE(0)" << std::endl;
+          ZMP_SET_BRAKE_STROKE(0);
+          std::cout << "ZMP_SET_BRAKE_STROKE(" << -brake_stroke << ")" << std::endl;
+          ZMP_SET_BRAKE_STROKE(-brake_stroke);
+        }
+      }
+    }
+    std::cout << "current_velocity:" << current_velocity << " cmd_velocity:" << cmd_velocity
+              << std::endl;
+  }
+}
+
+void VehicleUtil::ClearCntDiag(){
+  hev->ClearCntDiag();
 }

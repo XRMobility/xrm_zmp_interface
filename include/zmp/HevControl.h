@@ -11,20 +11,20 @@
 #define HEVCONTROL_H_
 
 #include <math.h>
-#include "DriveInformation.h"
-#include "SteeringInformation.h"
-#include "BrakeInformation.h"
-#include "BatteryInformation.h"
-#include "OtherInformation.h"
-#include "ImuInformation.h"
+#include "zmp/DriveInformation.h"
+#include "zmp/SteeringInformation.h"
+#include "zmp/BrakeInformation.h"
+#include "zmp/BatteryInformation.h"
+#include "zmp/OtherInformation.h"
+#include "zmp/ImuInformation.h"
 //#ifdef USE_DEMO
-#include "DemoSensorInformation.h"
+#include "zmp/DemoSensorInformation.h"
 //#endif
 //#include "CanCommunication.h"
-#include "HevControlCommon.h"
+#include "zmp/HevControlCommon.h"
 //#include "CANConst.h"
-#include "CANUSB.h"
-#include "HEVConst.h"
+#include "zmp/CANUSB.h"
+#include "zmp/HEVConst.h"
 
 /*! @brief HEV接続チャンネルの定義 */
 #define CAN_CHANNEL_HEV			CAN_CHANNEL_0				// 500kbps

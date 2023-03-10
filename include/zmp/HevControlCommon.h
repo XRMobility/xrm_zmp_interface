@@ -1,16 +1,7 @@
-/**
- * @file	HevControlCommon.h
- * @brief	共通ユーティリティクラスヘッダファイル
- * @date	2012/02/15
- * @author	m.ota
- * @par		Copyright:
- *		2012 XXX All rights reserved.
- */
-
 #ifndef HEVCONTROLCOMMON_H_
 #define HEVCONTROLCOMMON_H_
 
-#include "HEVConst.h"
+#include "zmp/HEVConst.h"
 
 namespace zmp
 {

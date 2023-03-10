@@ -61,6 +61,32 @@ void XrmZmpNode::callbackControlCmd(
 {
   control_command_received_time_ = this->now();
   // control_cmd_ptr_ = msg;
+  static long long int old_tstamp = 0;
+  vehicle_util_->cycle_time= (vehicle_util_->vstate.tstamp-old_tstamp)/1000.0;
+
+  double current_velocity = vehicle_util_->vstate.velocity; //km/h
+  double current_steering_angle = vehicle_util_->vstate.steering_angle; //deg
+  int cmd_velocity = msg->longitudinal.speed * 3.6; //m/s -> km/h
+  int cmd_steering_angle;
+  if (msg->longitudinal.speed<0.1) {
+    cmd_steering_angle=current_steering_angle;
+  } else {
+    double wheel_angle = vehicle_util_->RadToDeg(msg->lateral.steering_tire_angle);
+    cmd_steering_angle = wheel_angle*WHEEL_TO_STEERING;
+  }
+  for (int i = 0; i < vehicle_util_->cmd_rx_interval/STEERING_INTERNAL_PERIOD-1; i++) {
+    vehicle_util_->StrokeControl(current_velocity,cmd_velocity);
+    vehicle_util_->SteeringControl(current_steering_angle,cmd_steering_angle);
+    vehicle_util_->UpdateInfo();
+    current_velocity = vehicle_util_->vstate.velocity;
+    current_steering_angle = vehicle_util_->vstate.steering_angle;
+  }
+  vehicle_util_->StrokeControl(current_velocity,cmd_velocity);
+  vehicle_util_->SteeringControl(current_steering_angle,cmd_steering_angle);
+  old_tstamp = vehicle_util_->vstate.tstamp;
+
+
+
 }
 
 void XrmZmpNode::callbackGearCmd(
@@ -68,6 +94,7 @@ void XrmZmpNode::callbackGearCmd(
 {
   // gear_cmd_ptr_ = msg;
   int current_gear = vehicle_util_->getGear();
+  vehicle_util_->gear_is_setting = true;
   if (
     (msg->command == autoware_auto_vehicle_msgs::msg::GearCommand::DRIVE && current_gear == 1) ||
     (msg->command == autoware_auto_vehicle_msgs::msg::GearCommand::NEUTRAL && current_gear == 2) ||
@@ -82,6 +109,7 @@ void XrmZmpNode::callbackGearCmd(
   } else {
     RCLCPP_ERROR(get_logger(), "Unknown gear command");
   }
+  vehicle_util_->gear_is_setting = false;
 }
 
 void XrmZmpNode::callbackTurnIndicatorsCmd(
@@ -105,6 +133,9 @@ void XrmZmpNode::callbackTurnIndicatorsCmd(
 void XrmZmpNode::callbackGateMode(const tier4_control_msgs::msg::GateMode::ConstSharedPtr msg)
 {
   // gate_mode_ptr_ = msg;
+  vehicle_util_->mode_is_setting = true;
+  vehicle_util_->ClearCntDiag();
+  sleep(1);
   if (
     (msg->data == tier4_control_msgs::msg::GateMode::AUTO && vehicle_util_->ZMP_DRV_CONTROLED() &&
      vehicle_util_->ZMP_STR_CONTROLED()) ||
@@ -118,6 +149,7 @@ void XrmZmpNode::callbackGateMode(const tier4_control_msgs::msg::GateMode::Const
   } else {
     RCLCPP_ERROR(get_logger(), "Unknown gate mode");
   }
+  vehicle_util_->mode_is_setting = false;
 }
 
 void XrmZmpNode::publishCommands()

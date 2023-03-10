@@ -1,4 +1,4 @@
-#include "HevControl.h"
+#include "zmp/HevControl.h"
 #include <time.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -164,6 +164,8 @@ class HevCnt : public ChangeStateObserver
 public:
     HevCnt();
     virtual ~HevCnt();
+
+    void ClearCntDiag(); //清除计数器对话框。
 
     bool Init(); //初始化HEV控制系统并检查连接是否正常。
     bool Start(); //启动HEV控制系统并开始自动控制。

@@ -1,8 +1,8 @@
 #ifndef vehicle_util_hpp
 #define vehicle_util_hpp
-#include "HevCnt.h"
+#include "zmp/HevCnt.h"
 
-#include <vehicle_info.hpp>
+#include <zmp/vehicle_info.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -31,6 +31,13 @@ public:
   DrvInf _drvInf;
   StrInf _strInf;
   vehicle_state_t vstate;
+  double cycle_time;
+  int cmd_rx_interval=100;//ms
+
+  int current_mode=-1;
+  int current_gear=-1;
+  int mode_is_setting=false;
+  int gear_is_setting=false;
 
   void ZMP_STOP();
   void readLoop();
@@ -40,6 +47,8 @@ public:
   static double RadToDeg(double rad);
   static double DegToRad(double deg);
   double calculateVariableGearRatio(const double vel, const double steer_wheel);
+  void ClearCntDiag();
+  void UpdateInfo();
 
   // streering
   static void clear_diff_str();
@@ -65,6 +74,8 @@ public:
   void ZMP_SET_SHIFT_POS_B();
   double _accel_stroke_pid_control(double current_velocity, double cmd_velocity);
   double _brake_stroke_pid_control(double current_velocity, double cmd_velocity);
+  double _stopping_control(double current_velocity);
+  void StrokeControl(double current_velocity, double cmd_velocity);
 
   std::thread read_thread;
 
@@ -75,6 +86,8 @@ public:
   void SetBlinkerRightOFF();
   void SetManualMode();
   void SetProgramMode();
+  void sndBrkLampOn();
+  void sndBrkLampOff();
 
   // Getter
   float getVelocity();

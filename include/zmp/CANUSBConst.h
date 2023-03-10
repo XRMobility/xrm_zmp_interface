@@ -2,7 +2,7 @@
 #define CANUSBCONST_H_
 
 #include <stdio.h>
-#include "CANConst.h"
+#include "zmp/CANConst.h"
 
 
 #define _DEVICE_NAME		"/dev/ttyACM0"

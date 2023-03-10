@@ -1,4 +1,4 @@
-#include "HevCnt.h"
+#include "zmp/HevCnt.h"
 #include <time.h>
 #define USE_DEMO 1
 
@@ -507,6 +507,14 @@ void HevCnt::SetBlinkerRight(unsigned char blink_right)
 void HevCnt::SetBrakeMode(unsigned char mode)
 {
     _hevCnt->SetBrakeMode(mode);
+}
+
+void HevCnt::ClearCntDiag(){
+    CANMsg msg;
+    msg.LEN=1;
+    msg.ID=0x18<<6|MSG_COMMON_REQ_ERROR_STATUS;
+    msg.DATA[0]=1;
+    _canCom->SendMsg(CAN_CHANNEL_1,msg);
 }
 
 void HevCnt::SetControlGain(int index, int gain)

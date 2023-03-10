@@ -10,7 +10,7 @@
 #ifndef DRIVEINFORMATION_H_
 #define DRIVEINFORMATION_H_
 
-#include "HEVConst.h"
+#include "zmp/HEVConst.h"
 
 namespace zmp
 {

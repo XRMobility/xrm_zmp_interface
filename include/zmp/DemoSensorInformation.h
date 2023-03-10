@@ -10,7 +10,7 @@
 #ifndef DEMO_SENSOR_INFORMATION_H_
 #define DEMO_SENSOR_INFORMATION_H_
 
-#include "HEVConst.h"
+#include "zmp/HEVConst.h"
 
 namespace zmp
 {

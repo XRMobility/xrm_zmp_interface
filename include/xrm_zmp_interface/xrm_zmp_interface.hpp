@@ -36,12 +36,6 @@ private:
 
   std::string base_frame_id_;
 
-  // input value
-  //autoware_auto_control_msgs::msg::AckermannControlCommand::ConstSharedPtr control_cmd_ptr_;
-  //autoware_auto_vehicle_msgs::msg::TurnIndicatorsCommand::ConstSharedPtr turn_indicators_cmd_ptr_;
-  //autoware_auto_vehicle_msgs::msg::GearCommand::ConstSharedPtr gear_cmd_ptr_;
-  //tier4_control_msgs::msg::GateMode::ConstSharedPtr gate_mode_ptr_;
-
   // Subcribers
   // From Autoware.Control
   rclcpp::Subscription<autoware_auto_control_msgs::msg::AckermannControlCommand>::SharedPtr

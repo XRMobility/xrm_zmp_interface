@@ -25,8 +25,6 @@ ament_auto_add_executable(xrm_zmp_interface
   src/xrm_zmp_interface_node.cpp
 )
 
-
-
 target_link_libraries(
   xrm_zmp_interface
   vehicle_util

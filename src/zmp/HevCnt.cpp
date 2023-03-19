@@ -14,7 +14,7 @@ HevCnt::HevCnt()
     memset(&_sensInf, 0x0, sizeof(SensorInf));
     memset(&_config, 0x0, sizeof(ConfigInf));
 
-    memset(&_firm_version, 0x0, sizeof(char)*9);
+    memset(&_firm_version, 0x0, sizeof(char) * 9);
 
     _beforAngle = 0;
     _targetCnt = 0;
@@ -22,55 +22,48 @@ HevCnt::HevCnt()
 }
 
 HevCnt::~HevCnt()
-{}
+{
+}
 
 bool HevCnt::Init()
 {
     _canCom = new CANUSBZ();
     _hevCnt = new HevControl();
 
-    _hevCnt->InitHevControl(_canCom, (char*)"/dev/ttyACM0");
+    _hevCnt->InitHevControl(_canCom, (char *)"/dev/ttyACM0");
 
     _canCom->SetCANUSBZParam(CAN_CHANNEL_0, CAN_SPEED_500, CANID_KIND_11);
     _canCom->SetCANUSBZParam(CAN_CHANNEL_1, CAN_SPEED_1000, CANID_KIND_11);
 
     _hevCnt->SetStatusCallback(this);
 
-    _targetAngle=0;
-    _beforAngle=0;
-    _targetCnt=0;
+    _targetAngle = 0;
+    _beforAngle = 0;
+    _targetCnt = 0;
     _callback = NULL;
-
-//    _selectLog.battInf = false;
-//    _selectLog.brkInf = false;
-//    _selectLog.cameraInf = false;
-//    _selectLog.drvInf = false;
-//    _selectLog.otherInf = false;
-//    _selectLog.start = false;
-//    _selectLog.strInf = false;
     return true;
 }
 
 bool HevCnt::Start()
 {
-//    _canCom->StartCommunication();
+    //    _canCom->StartCommunication();
 
-//    _hevCnt->ClearDiag(ENGINE_ECU);
-//    _hevCnt->ClearDiag(HV_ECU);
-//    _hevCnt->ClearDiag(BRAKE_ECU);
-//    _hevCnt->ClearDiag(BATTERY_ECU);
-//    _hevCnt->SetStrMode(0x10);
-//    _hevCnt->SetStrControlMode(0x10);
-//    _hevCnt->SetStrOverrideMode(0x10);
-//    _hevCnt->SetStrAngle(0.0f);
-//    _hevCnt->SetStrServo(0x10);
-//    _hevCnt->SetStrAngle(0.0f);
+    //    _hevCnt->ClearDiag(ENGINE_ECU);
+    //    _hevCnt->ClearDiag(HV_ECU);
+    //    _hevCnt->ClearDiag(BRAKE_ECU);
+    //    _hevCnt->ClearDiag(BATTERY_ECU);
+    //    _hevCnt->SetStrMode(0x10);
+    //    _hevCnt->SetStrControlMode(0x10);
+    //    _hevCnt->SetStrOverrideMode(0x10);
+    //    _hevCnt->SetStrAngle(0.0f);
+    //    _hevCnt->SetStrServo(0x10);
+    //    _hevCnt->SetStrAngle(0.0f);
 
     _canCom->Start();
     return true;
 }
 
-bool HevCnt::SetConfigCallback(ChangeConfig* callback)
+bool HevCnt::SetConfigCallback(ChangeConfig *callback)
 {
     _callback = callback;
     return true;
@@ -89,11 +82,11 @@ bool HevCnt::Stop()
 
 bool HevCnt::Close()
 {
-  _canCom->Close();
+    _canCom->Close();
     return true;
 }
 
-void HevCnt::GetBattInf(BattInf* batt)
+void HevCnt::GetBattInf(BattInf *batt)
 {
     batt->soc = _battInf.soc;
     batt->voltage = _battInf.voltage;
@@ -104,7 +97,7 @@ void HevCnt::GetBattInf(BattInf* batt)
     batt->max_dischg_current = _battInf.max_dischg_current;
 }
 
-void HevCnt::GetBrakeInf(BrakeInf* brake)
+void HevCnt::GetBrakeInf(BrakeInf *brake)
 {
     brake->pressed = _brakeInf.pressed;
     brake->actualPedalStr = _brakeInf.actualPedalStr;
@@ -124,18 +117,18 @@ void HevCnt::GetBrakeInf(BrakeInf* brake)
     brake->brakeMode = _brakeInf.brakeMode;
 }
 
-void HevCnt::GetOtherInf(OtherInf* other)
+void HevCnt::GetOtherInf(OtherInf *other)
 {
-    other->door     = _otherInf.door;
-    other->temp     = _otherInf.temp;
-    other->rpm      = _otherInf.rpm;
-    other->light    = _otherInf.light;
-    other->level    = _otherInf.level;
+    other->door = _otherInf.door;
+    other->temp = _otherInf.temp;
+    other->rpm = _otherInf.rpm;
+    other->light = _otherInf.light;
+    other->level = _otherInf.level;
     other->drv_mode = _otherInf.drv_mode;
-    other->ev_mode  = _otherInf.ev_mode;
-    other->cluise   = _otherInf.cluise;
-    other->acc      = _otherInf.acc;
-    other->sideAcc  = _otherInf.sideAcc;
+    other->ev_mode = _otherInf.ev_mode;
+    other->cluise = _otherInf.cluise;
+    other->acc = _otherInf.acc;
+    other->sideAcc = _otherInf.sideAcc;
     other->dtcData1 = _otherInf.dtcData1;
     other->dtcData2 = _otherInf.dtcData2;
     other->dtcData3 = _otherInf.dtcData3;
@@ -157,7 +150,7 @@ void HevCnt::GetOtherInf(OtherInf* other)
     other->velocFromP2 = _otherInf.velocFromP2;
 }
 
-void HevCnt::GetDrvInf(DrvInf* drv)
+void HevCnt::GetDrvInf(DrvInf *drv)
 {
     drv->mode = _drvInf.mode;
     drv->contMode = _drvInf.contMode;
@@ -179,7 +172,7 @@ void HevCnt::GetDrvInf(DrvInf* drv)
     drv->shiftRawVsx4 = _drvInf.shiftRawVsx4;
 }
 
-void HevCnt::GetStrInf(StrInf* str)
+void HevCnt::GetStrInf(StrInf *str)
 {
     str->angle = _strInf.angle;
     str->cont_mode = _strInf.cont_mode;
@@ -193,24 +186,30 @@ void HevCnt::GetStrInf(StrInf* str)
     str->trq2 = _strInf.trq2;
 }
 
-
 void HevCnt::UpdateSteerState(REP_STEER_INFO_INDEX index)
 {
-    switch(index){
+    switch (index)
+    {
     case REP_STR_MODE:
-        _hevCnt->GetStrMode((int&)_strInf.mode);
-        _hevCnt->GetStrControlMode((int&)_strInf.cont_mode);
-        _hevCnt->GetStrOverrideMode((int&)_strInf.overrideMode);
-        _hevCnt->GetStrServo((int&)_strInf.servo);
+        _hevCnt->GetStrMode((int &)_strInf.mode);
+        _hevCnt->GetStrControlMode((int &)_strInf.cont_mode);
+        _hevCnt->GetStrOverrideMode((int &)_strInf.overrideMode);
+        _hevCnt->GetStrServo((int &)_strInf.servo);
         break;
     case REP_TORQUE:
-        _hevCnt->GetStrTorque((int&)_strInf.torque);
-        _hevCnt->GetStrTargetTorque((int&)_strInf.targetTorque);
-//_hevCnt->SetStrTorque(_strInf.targetTorque + _asistTrq);
+        _hevCnt->GetStrTorque((int &)_strInf.torque);
+        _hevCnt->GetStrTargetTorque((int &)_strInf.targetTorque);
+        //_hevCnt->SetStrTorque(_strInf.targetTorque + _asistTrq);
         break;
-    case REP_ANGLE: _hevCnt->GetStrAngle((float&)_strInf.angle, (float&)_strInf.targetAngle); break;
-    case REP_ANGLE_FROMOBD: _hevCnt->GetStrAngleFromOBD((float&)_otherInf.angleFromP); break;
-	default: printf("\n"); break;
+    case REP_ANGLE:
+        _hevCnt->GetStrAngle((float &)_strInf.angle, (float &)_strInf.targetAngle);
+        break;
+    case REP_ANGLE_FROMOBD:
+        _hevCnt->GetStrAngleFromOBD((float &)_otherInf.angleFromP);
+        break;
+    default:
+        printf("\n");
+        break;
     }
 
     return;
@@ -218,55 +217,99 @@ void HevCnt::UpdateSteerState(REP_STEER_INFO_INDEX index)
 
 void HevCnt::UpdateDriveState(REP_DRIVE_INFO_INDEX index)
 {
-    switch(index){
+    switch (index)
+    {
     case REP_DRV_MODE:
-        _hevCnt->GetDrvMode((int&)_drvInf.mode);
-        _hevCnt->GetDrvControlMode((int&)_drvInf.contMode);
-        _hevCnt->GetDrvOverrideMode((int&)_drvInf.overrideMode);
-        _hevCnt->GetDrvServo((int&)_drvInf.servo);
-    case REP_GAS_PEDAL: _hevCnt->GetGasStroke((int&)_drvInf.actualPedalStr, (int&)_drvInf.targetPedalStr, (int&)_drvInf.inputPedalStr); break;
-    case REP_GAS_PEDAL_FROMOBD: _hevCnt->GetGasStrokeFromOBD((int&)_otherInf.drvPedalStrFromP); break;
-    case REP_VELOCITY: _hevCnt->GetVeloc((float&)_drvInf.veloc, (float&)_drvInf.targetVeloc); break;
-    case REP_VELOCITY_FROMOBD: _hevCnt->GetVelocFromOBD((float&)_otherInf.velocFromP); break;
-    case REP_VELOCITY_FROMOBD2: _hevCnt->GetVelocFromOBD2((float&)_otherInf.velocFromP2); break;
-    case REP_WHEEL_VELOCITY_F: _hevCnt->GetWheelVelocF((float&)_otherInf.velocFrFromP, (float&)_otherInf.velocFlFromP); break;
-    case REP_WHEEL_VELOCITY_R: _hevCnt->GetWheelVelocR((float&)_otherInf.velocRrFromP, (float&)_otherInf.velocRlFromP); break;
-    case REP_BRAKE_PEDAL: _hevCnt->GetBrakeStroke((int&)_brakeInf.actualPedalStr, (int&)_brakeInf.targetPedalStr, (int&)_brakeInf.inputPedalStr); break;
-    case REP_BRAKE_PEDAL_FROMOBD: _hevCnt->GetBrakeStrokeFromOBD((float&)_otherInf.brkPedalStrFromP,(bool&)_brakeInf.pressed); break;
-    case REP_SHIFT_POS: _hevCnt->GetShiftMode((int&)_drvInf.actualShift, (int&)_drvInf.targetShift, (int&)_drvInf.inputShift); break;
-    case REP_SHIFT_POS_FROMOBD: _hevCnt->GetShiftModeFromOBD((int&)_otherInf.shiftFromPrius); break;
-    case REP_HEV_MODE: _hevCnt->GetEvMode((int&)_otherInf.ev_mode); break;
-    case REP_ICE_RPM: _hevCnt->GetIceRpm((int&)_otherInf.rpm); break;
-    case REP_ICE_COOLANT_TEMP: _hevCnt->GetIceCoolantTemp((int&)_otherInf.temp); break;
-    case REP_ACCELERLATION: _hevCnt->GetAcc((float&)_otherInf.acc); break;
-    case REP_SIDE_ACCELERLATION: _hevCnt->GetSideAcc((float&)_otherInf.sideAcc); break;
-    case REP_DRIVE_MODE: _hevCnt->GetDriveMode((int&)_otherInf.drv_mode); break;
-    case REP_CRUISE_STATE: _hevCnt->GetCruiseControl((bool&)_otherInf.cluise); break;
+        _hevCnt->GetDrvMode((int &)_drvInf.mode);
+        _hevCnt->GetDrvControlMode((int &)_drvInf.contMode);
+        _hevCnt->GetDrvOverrideMode((int &)_drvInf.overrideMode);
+        _hevCnt->GetDrvServo((int &)_drvInf.servo);
+    case REP_GAS_PEDAL:
+        _hevCnt->GetGasStroke((int &)_drvInf.actualPedalStr, (int &)_drvInf.targetPedalStr, (int &)_drvInf.inputPedalStr);
+        break;
+    case REP_GAS_PEDAL_FROMOBD:
+        _hevCnt->GetGasStrokeFromOBD((int &)_otherInf.drvPedalStrFromP);
+        break;
+    case REP_VELOCITY:
+        _hevCnt->GetVeloc((float &)_drvInf.veloc, (float &)_drvInf.targetVeloc);
+        break;
+    case REP_VELOCITY_FROMOBD:
+        _hevCnt->GetVelocFromOBD((float &)_otherInf.velocFromP);
+        break;
+    case REP_VELOCITY_FROMOBD2:
+        _hevCnt->GetVelocFromOBD2((float &)_otherInf.velocFromP2);
+        break;
+    case REP_WHEEL_VELOCITY_F:
+        _hevCnt->GetWheelVelocF((float &)_otherInf.velocFrFromP, (float &)_otherInf.velocFlFromP);
+        break;
+    case REP_WHEEL_VELOCITY_R:
+        _hevCnt->GetWheelVelocR((float &)_otherInf.velocRrFromP, (float &)_otherInf.velocRlFromP);
+        break;
+    case REP_BRAKE_PEDAL:
+        _hevCnt->GetBrakeStroke((int &)_brakeInf.actualPedalStr, (int &)_brakeInf.targetPedalStr, (int &)_brakeInf.inputPedalStr);
+        break;
+    case REP_BRAKE_PEDAL_FROMOBD:
+        _hevCnt->GetBrakeStrokeFromOBD((float &)_otherInf.brkPedalStrFromP, (bool &)_brakeInf.pressed);
+        break;
+    case REP_SHIFT_POS:
+        _hevCnt->GetShiftMode((int &)_drvInf.actualShift, (int &)_drvInf.targetShift, (int &)_drvInf.inputShift);
+        break;
+    case REP_SHIFT_POS_FROMOBD:
+        _hevCnt->GetShiftModeFromOBD((int &)_otherInf.shiftFromPrius);
+        break;
+    case REP_HEV_MODE:
+        _hevCnt->GetEvMode((int &)_otherInf.ev_mode);
+        break;
+    case REP_ICE_RPM:
+        _hevCnt->GetIceRpm((int &)_otherInf.rpm);
+        break;
+    case REP_ICE_COOLANT_TEMP:
+        _hevCnt->GetIceCoolantTemp((int &)_otherInf.temp);
+        break;
+    case REP_ACCELERLATION:
+        _hevCnt->GetAcc((float &)_otherInf.acc);
+        break;
+    case REP_SIDE_ACCELERLATION:
+        _hevCnt->GetSideAcc((float &)_otherInf.sideAcc);
+        break;
+    case REP_DRIVE_MODE:
+        _hevCnt->GetDriveMode((int &)_otherInf.drv_mode);
+        break;
+    case REP_CRUISE_STATE:
+        _hevCnt->GetCruiseControl((bool &)_otherInf.cluise);
+        break;
     case REP_DTC_STATUS: //_hevCnt->GetDtcStatus((char&)_otherInf.dtcData1, (char&)_otherInf.dtcData2, (char&)_otherInf.dtcData3,
-                         //(char&)_otherInf.dtcData4, (char&)_otherInf.dtcData5, (char&)_otherInf.dtcData6, (char&)_otherInf.dtcData7, (char&)_otherInf.dtcData8);
-                         break;
-    case REP_BRAKE_STATUS: _hevCnt->GetBrakeStatus((unsigned char&)_brakeInf.brakeLamp, (unsigned char&)_brakeInf.blinkerLeft, (unsigned char&)_brakeInf.blinkerRight, (unsigned char&)_brakeInf.brakeMode); break;
-	default: printf("\n"); break;
+        //(char&)_otherInf.dtcData4, (char&)_otherInf.dtcData5, (char&)_otherInf.dtcData6, (char&)_otherInf.dtcData7, (char&)_otherInf.dtcData8);
+        break;
+    case REP_BRAKE_STATUS:
+        _hevCnt->GetBrakeStatus((unsigned char &)_brakeInf.brakeLamp, (unsigned char &)_brakeInf.blinkerLeft, (unsigned char &)_brakeInf.blinkerRight, (unsigned char &)_brakeInf.brakeMode);
+        break;
+    default:
+        printf("\n");
+        break;
     }
     return;
 }
 
 void HevCnt::UpdateBattState(REP_BATT_INFO_INDEX index)
 {
-    switch(index){
-	case REP_BATT_INFO: 
-	    _hevCnt->GetBattInfo((float&)_battInf.soc,
-				 (int&)_battInf.max_temp,
-				 (int&)_battInf.min_temp,
-				 (float&)_battInf.max_chg_current,
-				 (float&)_battInf.max_dischg_current);
+    switch (index)
+    {
+    case REP_BATT_INFO:
+        _hevCnt->GetBattInfo((float &)_battInf.soc,
+                             (int &)_battInf.max_temp,
+                             (int &)_battInf.min_temp,
+                             (float &)_battInf.max_chg_current,
+                             (float &)_battInf.max_dischg_current);
     case REP_BATT_INFO_CURRENT:
-        _hevCnt->GetBattCurrent((float&)_battInf.current);
+        _hevCnt->GetBattCurrent((float &)_battInf.current);
         break;
     case REP_BATT_INFO_VOLT:
-        _hevCnt->GetBattVoltage((int&)_battInf.voltage);
-	    break;
-	default: printf("\n"); break;
+        _hevCnt->GetBattVoltage((int &)_battInf.voltage);
+        break;
+    default:
+        printf("\n");
+        break;
     }
 
     return;
@@ -274,17 +317,20 @@ void HevCnt::UpdateBattState(REP_BATT_INFO_INDEX index)
 
 void HevCnt::UpdateOtherState(REP_OTHER_INFO_INDEX index)
 {
-    switch(index){
-	case REP_LIGHT_STATE:
-	    _hevCnt->GetLightState((LIGHT_STATE&)_otherInf.light);
-	    break;
-	case REP_GAS_LEVEL:
-        _hevCnt->GetGasLevel((int&)_otherInf.level);
-	    break;
-	case REP_DOOR_STATE:
-	    _hevCnt->GetDoorState((DOOR_STATE&)_otherInf.door);
-	    break;
-	default: printf("\n"); break;
+    switch (index)
+    {
+    case REP_LIGHT_STATE:
+        _hevCnt->GetLightState((LIGHT_STATE &)_otherInf.light);
+        break;
+    case REP_GAS_LEVEL:
+        _hevCnt->GetGasLevel((int &)_otherInf.level);
+        break;
+    case REP_DOOR_STATE:
+        _hevCnt->GetDoorState((DOOR_STATE &)_otherInf.door);
+        break;
+    default:
+        printf("\n");
+        break;
     }
 
     return;
@@ -300,56 +346,60 @@ void HevCnt::getDate()
 void HevCnt::UpdateDemoSensorState(REP_DEMO_SENSOR_INFO_INDEX index)
 {
     float v[12];
-    switch (index) {
+    switch (index)
+    {
     case REP_OFZ0:
         _hevCnt->GetOfzValue0(v);
-                // 中央2点の平均
-                // -100から100にノーマライズ
+        // 中央2点の平均
+        // -100から100にノーマライズ
         _sensInf.ofz[0] = (v[5] + v[6]) / 2 * 100;
- //               _sensInf.cntS[0]++;
-//		printf("##########################################OFZ0 v5=%2.2f v6=%2.2f _ofz=%d\n",
-//			v[5], v[6], _sensInf.ofz[0]);
-       break;
+        //               _sensInf.cntS[0]++;
+        //		printf("##########################################OFZ0 v5=%2.2f v6=%2.2f _ofz=%d\n",
+        //			v[5], v[6], _sensInf.ofz[0]);
+        break;
     case REP_OFZ1:
         _hevCnt->GetOfzValue1(v);
         _sensInf.ofz[1] = -(v[5] + v[6]) / 2 * 100;
-//                _sensInf.cntS[1]++;
-//		printf("##########################################OFZ1 v5=%2.2f v6=%2.2f _ofz=%d\n",
-//			v[5], v[6], _sensInf.ofz[1]);
+        //                _sensInf.cntS[1]++;
+        //		printf("##########################################OFZ1 v5=%2.2f v6=%2.2f _ofz=%d\n",
+        //			v[5], v[6], _sensInf.ofz[1]);
         break;
     case REP_OFZ2:
         _hevCnt->GetOfzValue2(v);
         _sensInf.ofz[2] = (v[5] + v[6]) / 2 * 100;
-//                _sensInf.cntS[2]++;
-//		printf("##########################################OFZ2 v5=%2.2f v6=%2.2f _ofz=%d\n",
-//			v[5], v[6], _sensInf.ofz[2]);
+        //                _sensInf.cntS[2]++;
+        //		printf("##########################################OFZ2 v5=%2.2f v6=%2.2f _ofz=%d\n",
+        //			v[5], v[6], _sensInf.ofz[2]);
         break;
     case REP_OFZ3:
         _hevCnt->GetOfzValue3(v);
         _sensInf.ofz[3] = -(v[5] + v[6]) / 2 * 100;
-//                _sensInf.cntS[3]++;
-//		printf("##########################################OFZ3 v5=%2.2f v6=%2.2f _ofz=%d\n",
-//			v[5], v[6], _sensInf.ofz[3]);
+        //                _sensInf.cntS[3]++;
+        //		printf("##########################################OFZ3 v5=%2.2f v6=%2.2f _ofz=%d\n",
+        //			v[5], v[6], _sensInf.ofz[3]);
         break;
     case REP_SEAT_SENSOR:
-        _hevCnt->GetSeatSensor((float&)_sensInf.seat);
-                // 人が30cm以内にいたら1
-//		printf("Sens s=%2.2f\n",_sensInf.seat);
+        _hevCnt->GetSeatSensor((float &)_sensInf.seat);
+        // 人が30cm以内にいたら1
+        //		printf("Sens s=%2.2f\n",_sensInf.seat);
         break;
-	default: break;
-	}	
+    default:
+        break;
+    }
 }
 
 void HevCnt::ReceiveConfig(int num, int index, int value[])
 {
-    printf("ReceiveConfig() num=%d index=%d value=%d\n", 
-	   num, index, value[index]);
+    printf("ReceiveConfig() num=%d index=%d value=%d\n",
+           num, index, value[index]);
     int data[3];
-    for(int i=0; i<num; i++){
+    for (int i = 0; i < num; i++)
+    {
         _config.data[index - 100] = value[i];
         data[i] = value[i];
     }
-    if(NULL != _callback){
+    if (NULL != _callback)
+    {
         _callback->UpdateConfig(num, index, data);
     }
 }
@@ -370,14 +420,15 @@ void HevCnt::ReceiveImuMsg(REP_IMU_INFO_INDEX index)
     printf("ReceiveImuMsg() index=%d\n", index);
 }
 
-void HevCnt::ReceiveVersion(char c0, char c1, char c2, char c3, char c4, char c5, char c6, char c7){
-    sprintf(_firm_version, "%c%c%c%c%c%c%c%c",c0,c1,c2,c3,c4,c5,c6,c7);
+void HevCnt::ReceiveVersion(char c0, char c1, char c2, char c3, char c4, char c5, char c6, char c7)
+{
+    sprintf(_firm_version, "%c%c%c%c%c%c%c%c", c0, c1, c2, c3, c4, c5, c6, c7);
 }
 
-void HevCnt::rcvTime(char* date)
+void HevCnt::rcvTime(char *date)
 {
     getDate();
-    sprintf(date, "%d/%d/%d/%d:%d:%d.%ld", _s_time->tm_year+1900, _s_time->tm_mon+1, _s_time->tm_mday,
+    sprintf(date, "%d/%d/%d/%d:%d:%d.%ld", _s_time->tm_year + 1900, _s_time->tm_mon + 1, _s_time->tm_mday,
             _s_time->tm_hour, _s_time->tm_min, _s_time->tm_sec, _getTime.tv_usec);
 }
 
@@ -434,12 +485,12 @@ void HevCnt::SetStrOMOde(int omode)
 void HevCnt::SetStrTorque(int torque)
 {
     _hevCnt->SetStrTorque(torque + _asistTrq);
-//    _asistTrq = torque;
+    //    _asistTrq = torque;
 }
 
 void HevCnt::SetStrAngle(int angle)
 {
-    float sndVal = angle /10.0f;
+    float sndVal = angle / 10.0f;
     _hevCnt->SetStrAngle(sndVal);
 }
 
@@ -470,7 +521,7 @@ void HevCnt::SetDrvStroke(int stroke)
 
 void HevCnt::SetDrvVeloc(int veloc)
 {
-    float sndVal = veloc /100.0f;
+    float sndVal = veloc / 100.0f;
     _hevCnt->SetVeloc(sndVal);
 }
 
@@ -509,12 +560,13 @@ void HevCnt::SetBrakeMode(unsigned char mode)
     _hevCnt->SetBrakeMode(mode);
 }
 
-void HevCnt::ClearCntDiag(){
+void HevCnt::ClearCntDiag()
+{
     CANMsg msg;
-    msg.LEN=1;
-    msg.ID=0x18<<6|MSG_COMMON_REQ_ERROR_STATUS;
-    msg.DATA[0]=1;
-    _canCom->SendMsg(CAN_CHANNEL_1,msg);
+    msg.LEN = 1;
+    msg.ID = 0x18 << 6 | MSG_COMMON_REQ_ERROR_STATUS;
+    msg.DATA[0] = 1;
+    _canCom->SendMsg(CAN_CHANNEL_1, msg);
 }
 
 void HevCnt::SetControlGain(int index, int gain)
@@ -547,11 +599,12 @@ void HevCnt::SndVersionReq()
     _hevCnt->ReadVersionReq();
 }
 
-void HevCnt::GetFirmVersion(char* firm_version){
-    strncpy(firm_version, _firm_version, 9); //version is 8 chars
+void HevCnt::GetFirmVersion(char *firm_version)
+{
+    strncpy(firm_version, _firm_version, 9); // version is 8 chars
 }
 
-void HevCnt::GetErrCode(int* errLevel, int* errCode)
+void HevCnt::GetErrCode(int *errLevel, int *errCode)
 {
     *errCode = _errCode;
     *errLevel = _errLevel;

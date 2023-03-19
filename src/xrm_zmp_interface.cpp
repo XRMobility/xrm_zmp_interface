@@ -84,9 +84,6 @@ void XrmZmpNode::callbackControlCmd(
   vehicle_util_->StrokeControl(current_velocity,cmd_velocity);
   vehicle_util_->SteeringControl(current_steering_angle,cmd_steering_angle);
   old_tstamp = vehicle_util_->vstate.tstamp;
-
-
-
 }
 
 void XrmZmpNode::callbackGearCmd(

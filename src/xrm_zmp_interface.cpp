@@ -2,6 +2,8 @@
 
 XrmZmpNode::XrmZmpNode() : Node("xrm_zmp_interface")
 {
+
+  vehicle_util_ = new VehicleUtil();
   base_frame_id_ = declare_parameter("base_frame_id", "base_link");
   // Subcribers
   // From Autoware
@@ -25,6 +27,9 @@ XrmZmpNode::XrmZmpNode() : Node("xrm_zmp_interface")
 
   // Publishers
   // To Autoware
+  control_mode_pub_ = this->create_publisher<autoware_auto_vehicle_msgs::msg::ControlModeReport>(
+    "/vehicle/status/control_mode", rclcpp::QoS{1});
+
   vehicle_twist_pub_ = this->create_publisher<autoware_auto_vehicle_msgs::msg::VelocityReport>(
     "/vehicle/status/velocity_status", rclcpp::QoS{1});
 

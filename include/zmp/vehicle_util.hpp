@@ -15,13 +15,22 @@ class VehicleUtil
 public:
   VehicleUtil();
   ~VehicleUtil();
-  HevCnt * hev;
+  HevCnt* hev;
   BattInf _battInf;
   BrakeInf _brakeInf;
   OtherInf _otherInf;
   DrvInf _drvInf;
   StrInf _strInf;
   vehicle_state_t vstate;
+  const std::string SHM_SEED_PATH = "./PID_controller";
+  struct struct_PID_controller
+  {
+    struct PID_valueSet accel;
+    struct PID_valueSet brake;
+    struct PID_valueSet steer;
+  };
+  struct struct_PID_controller* shm_ptr;
+
   double cycle_time;
   int cmd_rx_interval = 100;  // ms
 

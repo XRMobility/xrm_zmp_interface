@@ -17,6 +17,8 @@ VehicleUtil::VehicleUtil()
   std::cout << "VehicleUtil::VehicleUtil() LOG: HevCnt initialized" << std::endl;
   // read_thread = std::thread(&VehicleUtil::readLoop, this);
   // read_thread.detach();
+  hev->SetDrvMode(MODE_MANUAL);
+  hev->SetStrMode(MODE_MANUAL);
 }
 
 void VehicleUtil::clear_diff_str()

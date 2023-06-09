@@ -15,8 +15,8 @@ VehicleUtil::VehicleUtil()
   hev->Init();
   hev->Start();
   std::cout << "VehicleUtil::VehicleUtil() LOG: HevCnt initialized" << std::endl;
-  read_thread = std::thread(&VehicleUtil::readLoop, this);
-  read_thread.detach();
+  // read_thread = std::thread(&VehicleUtil::readLoop, this);
+  // read_thread.detach();
 }
 
 void VehicleUtil::clear_diff_str()
@@ -150,23 +150,22 @@ void VehicleUtil::SetStrMode(int mode)
   std::cout << "VehicleUtil::SetStrMode() LOG: Set steering mode to " << mode << std::endl;
   switch (mode)
   {
-  case CMD_MODE_MANUAL:
-    std::cout << "Manual mode(Steering)" << std::endl;
-    ZMP_SET_STR_MANUAL();
-    break;
-  case CMD_MODE_PROGRAM:
-    std::cout << "Program mode(Steering)" << std::endl;
-    ZMP_SET_STR_PROGRAM();
-    clear_diff_str();
-    break;
-  default:
-    std::cout << "Invalid mode(Steering)" << std::endl;
-    break;
+    case CMD_MODE_MANUAL:
+      std::cout << "Manual mode(Steering)" << std::endl;
+      ZMP_SET_STR_MANUAL();
+      break;
+    case CMD_MODE_PROGRAM:
+      std::cout << "Program mode(Steering)" << std::endl;
+      ZMP_SET_STR_PROGRAM();
+      clear_diff_str();
+      break;
+    default:
+      std::cout << "Invalid mode(Steering)" << std::endl;
+      break;
   }
 }
 
-double VehicleUtil::_str_torque_pid_control(
-    double current_steering_angle, double cmd_steering_angle)
+double VehicleUtil::_str_torque_pid_control(double current_steering_angle, double cmd_steering_angle)
 {
   std::cout << "VehicleUtil::_str_torque_pid_control() LOG: Steering torque PID control" << std::endl;
   double e;
@@ -278,18 +277,18 @@ void VehicleUtil::SetDrvMode(int mode)
   std::cout << "VehicleUtil::SetDrvMode() LOG: Set driving mode to " << mode << std::endl;
   switch (mode)
   {
-  case CMD_MODE_MANUAL:
-    std::cout << "Manual mode(Driving)" << std::endl;
-    ZMP_SET_DRV_MANUAL();
-    break;
-  case CMD_MODE_PROGRAM:
-    std::cout << "Program mode(Driving)" << std::endl;
-    ZMP_SET_DRV_PROGRAM();
-    clear_diff_drv();
-    break;
-  default:
-    std::cout << "Invalid mode(Driving)" << std::endl;
-    break;
+    case CMD_MODE_MANUAL:
+      std::cout << "Manual mode(Driving)" << std::endl;
+      ZMP_SET_DRV_MANUAL();
+      break;
+    case CMD_MODE_PROGRAM:
+      std::cout << "Program mode(Driving)" << std::endl;
+      ZMP_SET_DRV_PROGRAM();
+      clear_diff_drv();
+      break;
+    default:
+      std::cout << "Invalid mode(Driving)" << std::endl;
+      break;
   }
 }
 
@@ -317,7 +316,7 @@ void VehicleUtil::ZMP_SET_SHIFT_POS_B()
 void VehicleUtil::SetGear(int gear)
 {
   std::cout << "VehicleUtil::SetGear() LOG: Set gear to " << gear << std::endl;
-  double current_velocity = vstate.velocity; // km/h
+  double current_velocity = vstate.velocity;  // km/h
   if (current_velocity != 0)
   {
     std::cout << "Vehicle is moving. Can't change gear" << std::endl;
@@ -326,25 +325,25 @@ void VehicleUtil::SetGear(int gear)
   ZMP_STOP();
   switch (gear)
   {
-  case CMD_GEAR_D:
-    std::cout << "Set Gear D" << std::endl;
-    ZMP_SET_SHIFT_POS_D();
-    break;
-  case CMD_GEAR_N:
-    std::cout << "Set Gear N" << std::endl;
-    ZMP_SET_SHIFT_POS_N();
-    break;
-  case CMD_GEAR_R:
-    std::cout << "Set Gear R" << std::endl;
-    ZMP_SET_SHIFT_POS_R();
-    break;
-  case CMD_GEAR_B:
-    std::cout << "Set Gear B" << std::endl;
-    ZMP_SET_SHIFT_POS_B();
-    break;
-  default:
-    std::cout << "Invalid gear" << std::endl;
-    break;
+    case CMD_GEAR_D:
+      std::cout << "Set Gear D" << std::endl;
+      ZMP_SET_SHIFT_POS_D();
+      break;
+    case CMD_GEAR_N:
+      std::cout << "Set Gear N" << std::endl;
+      ZMP_SET_SHIFT_POS_N();
+      break;
+    case CMD_GEAR_R:
+      std::cout << "Set Gear R" << std::endl;
+      ZMP_SET_SHIFT_POS_R();
+      break;
+    case CMD_GEAR_B:
+      std::cout << "Set Gear B" << std::endl;
+      ZMP_SET_SHIFT_POS_B();
+      break;
+    default:
+      std::cout << "Invalid gear" << std::endl;
+      break;
   }
   sleep(1);
 }
@@ -379,13 +378,11 @@ double VehicleUtil::_accel_stroke_pid_control(double current_velocity, double cm
     }
     if (current_velocity > 15)
     {
-      target_accel_stroke =
-          _K_ACCEL_P_UNTIL20 * e + _K_ACCEL_I_UNTIL20 * e_i + _K_ACCEL_D_UNTIL20 * e_d;
+      target_accel_stroke = _K_ACCEL_P_UNTIL20 * e + _K_ACCEL_I_UNTIL20 * e_i + _K_ACCEL_D_UNTIL20 * e_d;
     }
     else
     {
-      target_accel_stroke =
-          _K_ACCEL_P_UNTIL10 * e + _K_ACCEL_I_UNTIL10 * e_i + _K_ACCEL_D_UNTIL10 * e_d;
+      target_accel_stroke = _K_ACCEL_P_UNTIL10 * e + _K_ACCEL_I_UNTIL10 * e_i + _K_ACCEL_D_UNTIL10 * e_d;
     }
     if (target_accel_stroke > _ACCEL_PEDAL_MAX)
     {
@@ -539,12 +536,24 @@ float VehicleUtil::getVelocity()
   return vstate.velocity;
 }
 
-double VehicleUtil::KmhToMs(double kmh) { return (kmh * 1000 / (60.0 * 60.0)); }
+double VehicleUtil::KmhToMs(double kmh)
+{
+  return (kmh * 1000 / (60.0 * 60.0));
+}
 
-double VehicleUtil::Kmh100ToMs(double kmh100) { return (kmh100 * 10 / (60.0 * 60.0)); }
+double VehicleUtil::Kmh100ToMs(double kmh100)
+{
+  return (kmh100 * 10 / (60.0 * 60.0));
+}
 
-double VehicleUtil::RadToDeg(double rad) { return (rad * 180.0 / M_PI); }
-double VehicleUtil::DegToRad(double deg) { return (deg * M_PI / 180.0); }
+double VehicleUtil::RadToDeg(double rad)
+{
+  return (rad * 180.0 / M_PI);
+}
+double VehicleUtil::DegToRad(double deg)
+{
+  return (deg * M_PI / 180.0);
+}
 
 double VehicleUtil::getSteeringAngle()
 {
@@ -619,12 +628,14 @@ bool VehicleUtil::getBlinkerRight()
 
 float VehicleUtil::getCurrentAccel()
 {
-  std::cout << "VehicleUtil::getCurrentAccel() LOG: Get current accel" << (float)_drvInf.actualPedalStr / (float)_ACCEL_PEDAL_MAX << std::endl;
+  std::cout << "VehicleUtil::getCurrentAccel() LOG: Get current accel"
+            << (float)_drvInf.actualPedalStr / (float)_ACCEL_PEDAL_MAX << std::endl;
   return (float)_drvInf.actualPedalStr / (float)_ACCEL_PEDAL_MAX;
 }
 float VehicleUtil::getCurrentBrake()
 {
-  std::cout << "VehicleUtil::getCurrentBrake() LOG: Get current brake" << (float)_brakeInf.actualPedalStr / (float)_BRAKE_PEDAL_MAX << std::endl;
+  std::cout << "VehicleUtil::getCurrentBrake() LOG: Get current brake"
+            << (float)_brakeInf.actualPedalStr / (float)_BRAKE_PEDAL_MAX << std::endl;
   return (float)_brakeInf.actualPedalStr / (float)_BRAKE_PEDAL_MAX;
 }
 
@@ -716,13 +727,10 @@ void VehicleUtil::StrokeControl(double current_velocity, double cmd_velocity)
     vel_buffer.pop();
     estimate_accel = (current_velocity - old_velocity) / (cycle_time * vel_buffer_size);
     std::cout << "estimate_accel:" << estimate_accel << std::endl;
-    if (
-        fabs(cmd_velocity) > current_velocity && fabs(cmd_velocity) > 0.0 &&
-        current_velocity < SPEED_LIMIT)
+    if (fabs(cmd_velocity) > current_velocity && fabs(cmd_velocity) > 0.0 && current_velocity < SPEED_LIMIT)
     {
       double accel_stroke;
-      std::cout << "accelerate: current_velocity:" << current_velocity
-                << " cmd_velocity:" << cmd_velocity << std::endl;
+      std::cout << "accelerate: current_velocity:" << current_velocity << " cmd_velocity:" << cmd_velocity << std::endl;
       accel_stroke = _accel_stroke_pid_control(current_velocity, cmd_velocity);
       if (accel_stroke > 0.0)
       {
@@ -741,8 +749,7 @@ void VehicleUtil::StrokeControl(double current_velocity, double cmd_velocity)
     else if (fabs(cmd_velocity) < current_velocity && fabs(cmd_velocity) > 0.0)
     {
       double brake_stroke;
-      std::cout << "decelerate: current_velocity:" << current_velocity
-                << " cmd_velocity:" << cmd_velocity << std::endl;
+      std::cout << "decelerate: current_velocity:" << current_velocity << " cmd_velocity:" << cmd_velocity << std::endl;
       brake_stroke = _brake_stroke_pid_control(current_velocity, cmd_velocity);
       if (brake_stroke > 0)
       {
@@ -761,8 +768,7 @@ void VehicleUtil::StrokeControl(double current_velocity, double cmd_velocity)
     else if (cmd_velocity == 0.0 && current_velocity != 0.0)
     {
       double brake_stroke;
-      std::cout << "stop: current_velocity:" << current_velocity << " cmd_velocity:" << cmd_velocity
-                << std::endl;
+      std::cout << "stop: current_velocity:" << current_velocity << " cmd_velocity:" << cmd_velocity << std::endl;
       brake_stroke = _brake_stroke_pid_control(current_velocity, cmd_velocity);
       if (current_velocity < 4.0)
       {
@@ -788,8 +794,7 @@ void VehicleUtil::StrokeControl(double current_velocity, double cmd_velocity)
         }
       }
     }
-    std::cout << "current_velocity:" << current_velocity << " cmd_velocity:" << cmd_velocity
-              << std::endl;
+    std::cout << "current_velocity:" << current_velocity << " cmd_velocity:" << cmd_velocity << std::endl;
   }
 }
 
